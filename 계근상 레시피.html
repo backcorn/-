@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>주방용 레시피 북</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Pretendard', sans-serif; }
+        
+        /* 100vh 화면 완전 고정 및 외부 스크롤 방지 */
+        html, body { 
+            width: 100vw; 
+            height: 100vh; 
+            overflow: hidden; 
+            background-color: #f4f6f8; 
+            color: #333; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 0.8vh 0.8vw;
+        }
+        
+        /* 카드 프레임 전체 높이를 98vh로 잡고 세로 배치 */
+        .container { 
+            width: 100%;
+            max-width: 900px; 
+            height: 98vh; 
+            background: #fff; 
+            padding: 1.2vh 1.2vw; 
+            border-radius: 12px; 
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1); 
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        /* 표 콘텐츠 영역 비율 */
+        .content-area {
+            height: 87%;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* 메인 메뉴 화면 */
+        #menu-screen {
+            display: flex;
+            flex-direction: column;
+            height: 100%;
+            gap: 1vh;
+        }
+
+        /* 상단/하단 블록 높이 비율 (상단 6줄 : 하단 3줄 -> 2 : 1 비율 적용) */
+        .brand-block-top {
+            flex: 6;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5vh;
+        }
+
+        .brand-block-bottom {
+            flex: 3;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5vh;
+        }
+
+        /* 모든 버튼 행(Row) 높이 비율을 1:1로 고정 */
+        .grid-4col {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0.5vw;
+            flex: 1;
+        }
+
+        .grid-2col-head {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 0.5vw;
+            flex: 1;
+        }
+
+        .head-single {
+            flex: 1;
+        }
+
+        .btn-3d {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            width: 100%;
+            height: 100%;
+            padding: 0.2vh 0.2vw;
+            font-size: min(1.35rem, 2.4vh);
+            font-weight: 800;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.1s ease;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.15);
+            line-height: 1.1;
+        }
+
+        .btn-3d:active:not(.header-btn):not(.title-btn) {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 var(--shadow-color) !important;
+        }
+
+        .header-btn {
+            cursor: default;
+            font-size: min(1.35rem, 2.2vh);
+            color: #fff;
+            border-radius: 6px;
+        }
+
+        .title-btn {
+            cursor: default;
+            font-size: min(1.3rem, 2.2vh);
+            color: #fff;
+        }
+
+        .bg-kegunsang-head { background: linear-gradient(to bottom, #7A1C1C, #611C1D); border-top: 2px solid #a32e2e; --shadow-color: #3b0e0f; box-shadow: 0 2px 0 var(--shadow-color); }
+        .bg-hwangsil-head { background: linear-gradient(to bottom, #1F497D, #16365C); border-top: 2px solid #2e62a3; --shadow-color: #0d2038; box-shadow: 0 2px 0 var(--shadow-color); }
+        .bg-haewundae-head { background: linear-gradient(to bottom, #222, #000); border-top: 2px solid #444; --shadow-color: #000; box-shadow: 0 2px 0 var(--shadow-color); }
+
+        .bg-dakdoritang-title { background: linear-gradient(to bottom, #7F3100, #5C2300); border-top: 2px solid #a84300; --shadow-color: #381500; box-shadow: 0 2px 0 var(--shadow-color); }
+        .bg-jeyuk-title { background: linear-gradient(to bottom, #E28C57, #C6723D); border-top: 2px solid #f0a778; --shadow-color: #8c4c23; box-shadow: 0 2px 0 var(--shadow-color); }
+        .bg-kimchijjim-title { background: linear-gradient(to bottom, #E60067, #A30048); border-top: 2px solid #ff4d97; --shadow-color: #5c0029; box-shadow: 0 2px 0 var(--shadow-color); }
+        .bg-kimchijjigae-title { background: linear-gradient(to bottom, #2B579A, #1C3B6B); border-top: 2px solid #5383cc; --shadow-color: #0d1e38; box-shadow: 0 2px 0 var(--shadow-color); }
+
+        .bg-kanjang-title { background: linear-gradient(to bottom, #E28C57, #C6723D); border-top: 2px solid #f0a778; --shadow-color: #8c4c23; box-shadow: 0 2px 0 var(--shadow-color); }
+        .bg-truffle-title { background: linear-gradient(to bottom, #7F3100, #5C2300); border-top: 2px solid #a84300; --shadow-color: #381500; box-shadow: 0 2px 0 var(--shadow-color); }
+        .bg-daehan-title { background: linear-gradient(to bottom, #707070, #4A4A4A); border-top: 2px solid #999999; --shadow-color: #262626; box-shadow: 0 2px 0 var(--shadow-color); grid-column: span 2; }
+
+        .bg-kegunsang-sub1 { background: linear-gradient(to bottom, #9E430A, #7A3205); color: #fff; border-top: 2px solid #ca5912; --shadow-color: #4a1d02; box-shadow: 0 2px 0 var(--shadow-color); }
+        .bg-kegunsang-sub2 { background: linear-gradient(to bottom, #F5B085, #D99266); color: #000; text-shadow: none; border-top: 2px solid #ffd0b3; --shadow-color: #9c603b; box-shadow: 0 2px 0 var(--shadow-color); }
+
+        .bg-hwangsil-sub1 { background: linear-gradient(to bottom, #FF1493, #C71585); color: #fff; border-top: 2px solid #ff66B2; --shadow-color: #7A0043; box-shadow: 0 2px 0 var(--shadow-color); }
+        .bg-hwangsil-sub2 { background: linear-gradient(to bottom, #3A6EA5, #2A527A); color: #fff; border-top: 2px solid #6699CC; --shadow-color: #162E47; box-shadow: 0 2px 0 var(--shadow-color); }
+        .bg-daehan-sub { background: linear-gradient(to bottom, #8C8C8C, #6E6E6E); color: #fff; border-top: 2px solid #B3B3B3; --shadow-color: #404040; box-shadow: 0 2px 0 var(--shadow-color); grid-column: span 2; }
+
+        .bg-haewundae-btn { background: linear-gradient(to bottom, #A6A6A6, #8C8C8C); color: #000; text-shadow: none; border-top: 2px solid #cccccc; --shadow-color: #595959; box-shadow: 0 2px 0 var(--shadow-color); }
+
+        /* 레시피 상세 화면 (하위 메뉴) */
+        #recipe-screen { 
+            display: none; 
+            height: 100%;
+            flex-direction: column;
+        }
+        
+        .single-card-table {
+            width: 100%;
+            height: 100%;
+            border-collapse: collapse;
+            font-size: min(1.65rem, 2.6vh);
+            font-weight: bold;
+            text-align: center;
+            background-color: #fff;
+            border: 2px solid #000;
+        }
+        .single-card-table th {
+            font-size: min(1.85rem, 3.0vh);
+            padding: 0.2vh 0;
+            border-bottom: 2px solid #000;
+        }
+        .single-card-table td {
+            border: 1px solid #000;
+            padding: 0; 
+            height: auto;
+        }
+        .single-card-table .label-col { width: 45%; }
+        .single-card-table .val-col { width: 55%; }
+
+        /* 소스배합 전용 테이블 스타일 */
+        .source-mix-table {
+            width: 100%;
+            height: 100%;
+            border-collapse: collapse;
+            font-size: min(1.3rem, 2.1vh);
+            font-weight: bold;
+            text-align: center;
+            background-color: #fff;
+            border: 2px solid #000;
+        }
+        .source-mix-table th {
+            background-color: #E69B67;
+            color: #000;
+            font-size: min(1.5rem, 2.4vh);
+            padding: 0.4vh 0;
+            border: 2px solid #000;
+        }
+        .source-mix-table td {
+            border: 1px solid #000;
+            padding: 0.4vh 0.6vw;
+            height: auto;
+        }
+        .source-mix-table .bg-orange-header {
+            background-color: #E69B67;
+            color: #000;
+        }
+        .source-mix-table .bg-green-header {
+            background-color: #A9D18E;
+            color: #000;
+        }
+        .source-mix-table .text-left {
+            text-align: left;
+            padding-left: 0.8vw;
+        }
+
+        /* 테마 스타일 */
+        .dak-table th { background-color: #611C1D; color: #fff; }
+        .dak-table .bg-highlight { background-color: #FFC000; }
+        .dak-table .bg-red-head { background-color: #C00000; color: #fff; }
+
+        .jeyuk-table th { background-color: #F7AD83; color: #fff; text-shadow: 0 1px 2px rgba(0,0,0,0.2); }
+        .jeyuk-table .bg-gray-head { background-color: #C5C5C5; color: #000; }
+        .jeyuk-table .bg-yellow-highlight { background-color: #FFCD70; }
+
+        .jjim-table th { background-color: #611C1D; color: #fff; }
+        .jjim-table .bg-yellow-highlight { background-color: #FBC968; }
+        .jjim-table .bg-darkred-footer { background-color: #611C1D; color: #fff; }
+
+        .kimchijjim-table th { background-color: #FF0066; color: #fff; }
+        .kimchijjim-table .bg-yellow-highlight { background-color: #FBC968; }
+
+        .kimchijjigae-table th { background-color: #3153A0; color: #fff; }
+        .kimchijjigae-table .bg-yellow-highlight { background-color: #FBC968; }
+
+        .daehan-table th { background-color: #A6A6A6; color: #000; }
+        .daehan-table .bg-yellow-highlight { background-color: #FBC968; }
+
+        .haewundae-table th { background-color: #000; color: #fff; }
+        .haewundae-table .bg-orange-highlight { background-color: #F2A97B; }
+
+        /* 하단 그룹 전체 높이 */
+        .bottom-nav-group {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            height: 13%;
+        }
+
+        .fixed-btn-group {
+            width: 100%;
+            height: 70%;
+            display: flex;
+            align-items: center;
+        }
+
+        /* 메인 화면일 때는 버튼 자리를 비워두어 위치와 공간만 똑같이 맞춤 */
+        .container:not(.recipe-mode) .fixed-btn-group {
+            visibility: hidden;
+        }
+
+        .btn-home {
+            width: 100%;
+            height: 100%;
+            border: none; 
+            border-radius: 8px; 
+            color: #fff; 
+            font-size: min(1.35rem, 2.2vh); 
+            font-weight: 800; 
+            cursor: pointer;
+            background: linear-gradient(to bottom, #333, #111);
+            border-top: 2px solid #555;
+            box-shadow: 0 3px 0 #000;
+            transition: all 0.1s ease;
+        }
+
+        .btn-home:active {
+            transform: translateY(2px);
+            box-shadow: 0 1px 0 #000;
+            background: #000;
+        }
+
+        .empty-space {
+            width: 100%;
+            height: 30%;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container" id="main-container">
+    <div class="content-area">
+        <!-- 메인 메뉴 화면 -->
+        <div id="menu-screen">
+            <div class="brand-block-top">
+                <div class="grid-2col-head">
+                    <div class="btn-3d header-btn bg-kegunsang-head">계근상</div>
+                    <div class="btn-3d header-btn bg-hwangsil-head">황실김치찜</div>
+                </div>
+
+                <div class="grid-4col">
+                    <div class="btn-3d title-btn bg-dakdoritang-title">닭도리탕</div>
+                    <div class="btn-3d title-btn bg-jeyuk-title">제육볶음</div>
+                    <div class="btn-3d title-btn bg-kimchijjim-title">김치찜</div>
+                    <div class="btn-3d title-btn bg-kimchijjigae-title">김치찌개</div>
+                </div>
+
+                <div class="grid-4col">
+                    <button class="btn-3d bg-kegunsang-sub1" onclick="showDakRecipe('1인분')">1인분</button>
+                    <button class="btn-3d bg-kegunsang-sub2" onclick="showJeyukRecipe('1인분')">1인분</button>
+                    <button class="btn-3d bg-hwangsil-sub1" onclick="showKimchijjimRecipe('1인분')">1인분</button>
+                    <button class="btn-3d bg-hwangsil-sub2" onclick="showKimchijjigaeRecipe('1인분')">1인분</button>
+                </div>
+
+                <div class="grid-4col">
+                    <button class="btn-3d bg-kegunsang-sub1" onclick="showDakRecipe('소')">소</button>
+                    <button class="btn-3d bg-kegunsang-sub2" onclick="showJeyukRecipe('2인분')">2인분</button>
+                    <button class="btn-3d bg-hwangsil-sub1" onclick="showKimchijjimRecipe('1.5인분')">1.5인분</button>
+                    <button class="btn-3d bg-hwangsil-sub2" onclick="showKimchijjigaeRecipe('1.5인분')">1.5인분</button>
+                </div>
+
+                <div class="grid-4col">
+                    <button class="btn-3d bg-kegunsang-sub1" onclick="showDakRecipe('중')">중</button>
+                    <button class="btn-3d bg-kegunsang-sub2" onclick="showJeyukRecipe('3인분')">3인분</button>
+                    <button class="btn-3d bg-hwangsil-sub1" onclick="showKimchijjimRecipe('2-3인분')">2-3인분</button>
+                    <button class="btn-3d bg-hwangsil-sub2" onclick="showKimchijjigaeRecipe('2-3인분')">2-3인분</button>
+                </div>
+
+                <div class="grid-4col">
+                    <button class="btn-3d bg-kegunsang-sub1" onclick="showDakRecipe('대')">대</button>
+                    <button class="btn-3d bg-kegunsang-sub2" onclick="showJeyukRecipe('4인분')">4인분</button>
+                    <div class="btn-3d title-btn bg-daehan-title">대한김치찜</div>
+                </div>
+
+                <div class="grid-4col">
+                    <div class="btn-3d title-btn bg-kanjang-title">간장찜닭</div>
+                    <div class="btn-3d title-btn bg-truffle-title">트러플</div>
+                    <button class="btn-3d bg-daehan-sub" onclick="showDaehanRecipe('1인분')">1인분</button>
+                </div>
+
+                <div class="grid-4col">
+                    <button class="btn-3d bg-kegunsang-sub2" onclick="showKanjangRecipe('1인분')">1인분</button>
+                    <button class="btn-3d bg-kegunsang-sub1" onclick="showTruffleRecipe('1인분')">1인분</button>
+                    <button class="btn-3d bg-daehan-sub" onclick="showDaehanRecipe('1.5인분')">1.5인분</button>
+                </div>
+
+                <div class="grid-4col">
+                    <button class="btn-3d bg-kegunsang-sub2" onclick="showKanjangRecipe('소')">소</button>
+                    <button class="btn-3d bg-kegunsang-sub1" onclick="showTruffleRecipe('소')">소</button>
+                    <button class="btn-3d bg-daehan-sub" onclick="showDaehanRecipe('2-3인분')">2-3인분</button>
+                </div>
+            </div>
+
+            <div class="brand-block-bottom">
+                <div class="btn-3d header-btn bg-haewundae-head head-single">해운대 동백밀면</div>
+                <div class="grid-4col">
+                    <button class="btn-3d bg-haewundae-btn" onclick="showHaewundaeRecipe('mul')">물밀면</button>
+                    <button class="btn-3d bg-haewundae-btn" onclick="showHaewundaeRecipe('mulbibim')">물비빔밀면</button>
+                    <button class="btn-3d bg-haewundae-btn" onclick="showHaewundaeRecipe('bibim')">비빔밀면</button>
+                    <button class="btn-3d bg-haewundae-btn" onclick="showHaewundaeRecipe('haejang')">해장밀면</button>
+                </div>
+                <div class="grid-4col">
+                    <button class="btn-3d bg-haewundae-btn" onclick="showHaewundaeRecipe('chogye')">초계밀면</button>
+                    <button class="btn-3d bg-haewundae-btn" onclick="showHaewundaeRecipe('jjol')">쫄밀면</button>
+                    <button class="btn-3d bg-haewundae-btn" onclick="showHaewundaeRecipe('kong')">콩밀면</button>
+                    <button class="btn-3d bg-haewundae-btn" onclick="showSourceMixRecipe()">소스배합</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 레시피 상세 화면 -->
+        <div id="recipe-screen"></div>
+    </div>
+
+    <!-- 하단 영역 -->
+    <div class="bottom-nav-group">
+        <div class="fixed-btn-group">
+            <button class="btn-home" onclick="showMenu()">🏠 메뉴 목록으로 돌아가기</button>
+        </div>
+        <div class="empty-space"></div>
+    </div>
+</div>
+
+<script>
+    function showMenu() {
+        document.getElementById('main-container').classList.remove('recipe-mode');
+        document.getElementById('menu-screen').style.display = 'flex';
+        document.getElementById('recipe-screen').style.display = 'none';
+    }
+
+    function openRecipe() {
+        document.getElementById('main-container').classList.add('recipe-mode');
+        document.getElementById('menu-screen').style.display = 'none';
+        document.getElementById('recipe-screen').style.display = 'flex';
+    }
+
+    function showSourceMixRecipe() {
+        openRecipe();
+        const recipeScreen = document.getElementById('recipe-screen');
+
+        recipeScreen.innerHTML = `
+            <table class="source-mix-table">
+                <tr><th colspan="5">밀면육수 (단위:g)</th></tr>
+                <tr>
+                    <td class="bg-orange-header" style="width: 20%;">엑기스</td>
+                    <td style="width: 20%;">350</td>
+                    <td style="width: 20%;">1,000</td>
+                    <td style="width: 20%;">1,500</td>
+                    <td style="width: 20%;">3,000</td>
+                </tr>
+                <tr>
+                    <td class="bg-orange-header">정수물</td>
+                    <td>3,150</td>
+                    <td>9,000</td>
+                    <td>13,500</td>
+                    <td>27,000</td>
+                </tr>
+                <tr>
+                    <td class="bg-orange-header">설탕</td>
+                    <td>165</td>
+                    <td>471</td>
+                    <td>706</td>
+                    <td>1,412</td>
+                </tr>
+                <tr>
+                    <td class="bg-orange-header">식초</td>
+                    <td>25</td>
+                    <td>72</td>
+                    <td>108</td>
+                    <td>216</td>
+                </tr>
+                <tr>
+                    <td class="bg-orange-header">배합법</td>
+                    <td colspan="4" class="text-left">
+                        1. 엑기스는 꼭 채반에 걸러서 사용하기(노란기름 제거)<br>
+                        2. 생수 또는 정수물 사용하기(수돗물 안됨!!)<br>
+                        3. 설탕을 끓여서 다른 재료와 충분히 섞어주기<br>
+                        4. -5도 정도 살얼음이 생기게 온도 조절하기<br>
+                        &nbsp;&nbsp;&nbsp;&nbsp;※ 냉장고마다 성능이 다르므로 테스트 필수
+                    </td>
+                </tr>
+                <tr>
+                    <td class="bg-green-header">계란(완숙)</td>
+                    <td colspan="4" class="text-left">
+                        1. 물+소금+식초를 넣고 팔팔 끓으면 계란넣고 12분 삶기<br>
+                        2. 다 삶은 계란은 찬물에 넣어놨다가 식으면 까기
+                    </td>
+                </tr>
+                <tr>
+                    <td class="bg-green-header">양념장</td>
+                    <td colspan="4" class="text-left">
+                        1. 만능양념장3kg+냉면다데기1kg+불양념장300g<br>
+                        2. 충분히 섞어 냉장보관
+                    </td>
+                </tr>
+                <tr>
+                    <td class="bg-green-header">고기배합액</td>
+                    <td colspan="4" class="text-left">1. 참소스500g+양조식초50g+물850g</td>
+                </tr>
+                <tr>
+                    <td class="bg-green-header">초계배합액</td>
+                    <td colspan="4" class="text-left">1. 양조식초2 : 액상치킨스톡 1</td>
+                </tr>
+            </table>
+        `;
+    }
+
+    function showKimchijjimRecipe(size) {
+        openRecipe();
+        const recipeScreen = document.getElementById('recipe-screen');
+
+        let data = {};
+        if (size === '1인분') {
+            data = { title: '김치찜 한그릇(1인분)', time: '7분', kimchi: '200', meat: '150', intestine: '200', saury: '1캔', tofu: '2', sauce: '1국자(90%)', garlic: '1스푼', margarine: '1스푼', water: '400ml', chili: '0/1/2/3' };
+        } else if (size === '1.5인분') {
+            data = { title: '김치찜 1.5인분', time: '7분', kimchi: '300', meat: '250', intestine: '300', saury: '1캔', tofu: '3', sauce: '1국자(90%)', garlic: '1스푼', margarine: '1스푼', water: '500ml', chili: '0/1/2/3' };
+        } else if (size === '2-3인분') {
+            data = { title: '김치찜 2-3인분', time: '11분', kimchi: '400', meat: '400', intestine: '400', saury: '2캔', tofu: '4', sauce: '1국자(100%)', garlic: '2스푼', margarine: '2스푼', water: '700ml', chili: '0/2/4/6' };
+        }
+
+        recipeScreen.innerHTML = `
+            <table class="single-card-table kimchijjim-table">
+                <tr><th colspan="2">${data.title}</th></tr>
+                <tr><td class="label-col">시간</td><td class="val-col">${data.time}</td></tr>
+                <tr><td class="label-col">볶음김치</td><td class="val-col">${data.kimchi}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">삼겹,목살,부대햄</td><td class="val-col">${data.meat}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">대창,참치</td><td class="val-col">${data.intestine}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">꽁치</td><td class="val-col">${data.saury}</td></tr>
+                <tr><td class="label-col">두부</td><td class="val-col">${data.tofu}</td></tr>
+                <tr><td class="label-col">소스</td><td class="val-col">${data.sauce}</td></tr>
+                <tr><td class="label-col">다진마늘</td><td class="val-col">${data.garlic}</td></tr>
+                <tr><td class="label-col">마가린</td><td class="val-col">${data.margarine}</td></tr>
+                <tr><td class="label-col">물</td><td class="val-col">${data.water}</td></tr>
+                <tr><td class="label-col">베트남고추</td><td class="val-col">${data.chili}</td></tr>
+            </table>
+        `;
+    }
+
+    function showKimchijjigaeRecipe(size) {
+        openRecipe();
+        const recipeScreen = document.getElementById('recipe-screen');
+
+        let data = {};
+        if (size === '1인분') {
+            data = { title: '김치찌개 한그릇(1인분)', time: '7분', kimchi: '200', pork: '130', ham: '150', tuna: '200', saury: '1캔', tofu: '2', sauce: '1국자', garlic: '1스푼', chiliPowder: '1스푼', onion: '25', scallion: '25', margarine: '1스푼', water: '600ml', chili: '0/1/2/3' };
+        } else if (size === '1.5인분') {
+            data = { title: '김치찌개 1.5인분', time: '7분', kimchi: '300', pork: '180', ham: '200', tuna: '300', saury: '1캔', tofu: '3', sauce: '1국자', garlic: '1스푼', chiliPowder: '1스푼', onion: '25', scallion: '25', margarine: '1스푼', water: '600ml', chili: '0/1/2/3' };
+        } else if (size === '2-3인분') {
+            data = { title: '김치찌개 2-3인분', time: '11분', kimchi: '400', pork: '260', ham: '300', tuna: '400', saury: '2캔', tofu: '4', sauce: '2국자', garlic: '2스푼', chiliPowder: '2스푼', onion: '50', scallion: '50', margarine: '2스푼', water: '800ml', chili: '0/2/4/6' };
+        }
+
+        recipeScreen.innerHTML = `
+            <table class="single-card-table kimchijjigae-table">
+                <tr><th colspan="2">${data.title}</th></tr>
+                <tr><td class="label-col">시간</td><td class="val-col">${data.time}</td></tr>
+                <tr><td class="label-col">볶음김치</td><td class="val-col">${data.kimchi}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">삼겹,목살</td><td class="val-col">${data.pork}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">부대햄</td><td class="val-col">${data.ham}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">참치</td><td class="val-col">${data.tuna}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">꽁치</td><td class="val-col">${data.saury}</td></tr>
+                <tr><td class="label-col">두부</td><td class="val-col">${data.tofu}</td></tr>
+                <tr><td class="label-col">소스</td><td class="val-col">${data.sauce}</td></tr>
+                <tr><td class="label-col">다진마늘</td><td class="val-col">${data.garlic}</td></tr>
+                <tr><td class="label-col">고춧가루</td><td class="val-col">${data.chiliPowder}</td></tr>
+                <tr><td class="label-col">양파</td><td class="val-col">${data.onion}</td></tr>
+                <tr><td class="label-col">대파</td><td class="val-col">${data.scallion}</td></tr>
+                <tr><td class="label-col">마가린</td><td class="val-col">${data.margarine}</td></tr>
+                <tr><td class="label-col">물</td><td class="val-col">${data.water}</td></tr>
+                <tr><td class="label-col">베트남고추</td><td class="val-col">${data.chili}</td></tr>
+            </table>
+        `;
+    }
+
+    function showDaehanRecipe(size) {
+        openRecipe();
+        const recipeScreen = document.getElementById('recipe-screen');
+
+        let data = {};
+        if (size === '1인분') {
+            data = { title: '대한 김치찜 한그릇(1인분)', time: '7분', kimchi: '200', meat: '150', intestine: '80', tofu: '2', sauce: '1국자', garlic: '1스푼', margarine: '1스푼', water: '450ml', chili: '0/1/2/3' };
+        } else if (size === '1.5인분') {
+            data = { title: '대한 김치찜 1.5인분', time: '7분', kimchi: '300', meat: '250', intestine: '120', tofu: '3', sauce: '1국자', garlic: '1스푼', margarine: '1스푼', water: '550ml', chili: '0/1/2/3' };
+        } else if (size === '2-3인분') {
+            data = { title: '대한 김치찜 2-3인분', time: '11분', kimchi: '400', meat: '400', intestine: '160', tofu: '4', sauce: '1.2국자', garlic: '2스푼', margarine: '2스푼', water: '700ml', chili: '0/2/4/6' };
+        }
+
+        recipeScreen.innerHTML = `
+            <table class="single-card-table daehan-table">
+                <tr><th colspan="2">${data.title}</th></tr>
+                <tr><td class="label-col">시간</td><td class="val-col">${data.time}</td></tr>
+                <tr><td class="label-col">볶음김치</td><td class="val-col">${data.kimchi}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">삼겹,목살,부대햄</td><td class="val-col">${data.meat}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">대창</td><td class="val-col">${data.intestine}</td></tr>
+                <tr><td class="label-col">두부</td><td class="val-col">${data.tofu}</td></tr>
+                <tr><td class="label-col">소스</td><td class="val-col">${data.sauce}</td></tr>
+                <tr><td class="label-col">다진마늘</td><td class="val-col">${data.garlic}</td></tr>
+                <tr><td class="label-col">마가린</td><td class="val-col">${data.margarine}</td></tr>
+                <tr><td class="label-col">물</td><td class="val-col">${data.water}</td></tr>
+                <tr><td class="label-col">베트남고추</td><td class="val-col">${data.chili}</td></tr>
+            </table>
+        `;
+    }
+
+    function showHaewundaeRecipe(menuKey) {
+        openRecipe();
+        const recipeScreen = document.getElementById('recipe-screen');
+
+        const milmyeonData = {
+            'mul': { title: '물밀면', time: '1분40초', broth: '1국자', sauce: '20g(따로)', meat: '5g(2장)', rad_kimchi: '50g', cucumber: '20g', red_cabbage: '-', pepper: '-', egg: '반개', sesame: '1g', vinegar: '1개' },
+            'mulbibim': { title: '물비빔밀면', time: '1분40초', broth: '반국자', sauce: '40g', meat: '5g(2장)', rad_kimchi: '50g', cucumber: '20g', red_cabbage: '-', pepper: '-', egg: '반개', sesame: '1g', vinegar: '1개' },
+            'bibim': { title: '비빔밀면', time: '1분40초', broth: '국자10%', sauce: '80g/5g(참기름)', meat: '5g(2장)', rad_kimchi: '30g', cucumber: '20g', red_cabbage: '-', pepper: '-', egg: '반개', sesame: '1g', vinegar: '1개' },
+            'haejang': { title: '해장밀면', time: '1분40초', broth: '1국자', sauce: '60g(불양념)', meat: '5g(2장)', rad_kimchi: '30g', cucumber: '20g', red_cabbage: '-', pepper: '5g', egg: '반개', sesame: '1g', vinegar: '1개' },
+            'chogye': { title: '초계밀면', time: '1분40초', broth: '1국자', sauce: '15g/10g(스톡/식초)', meat: '30g(닭가슴살)', rad_kimchi: '10g(당근)', cucumber: '20g', red_cabbage: '10g', pepper: '5g', egg: '반개', sesame: '-', vinegar: '1개' },
+            'jjol': { title: '쫄밀면', time: '1분40초', broth: '국자(10%)', sauce: '80g/10g(쫄면/참기름)', meat: '-', rad_kimchi: '10g(당근)', cucumber: '20g', red_cabbage: '10g', pepper: '-', egg: '반개', sesame: '1g', vinegar: '1개' },
+            'kong': { title: '콩밀면', time: '1분40초', broth: '400ml(정수물)', sauce: '150g(콩가루)', meat: '-', rad_kimchi: '-', cucumber: '20g', red_cabbage: '-', pepper: '-', egg: '반개', sesame: '1g', vinegar: '1개' }
+        };
+
+        const data = milmyeonData[menuKey];
+
+        recipeScreen.innerHTML = `
+            <table class="single-card-table haewundae-table">
+                <tr><th colspan="2">${data.title}</th></tr>
+                <tr><td class="label-col">시간</td><td class="val-col">${data.time}</td></tr>
+                <tr><td class="label-col">밀면육수</td><td class="val-col">${data.broth}</td></tr>
+                <tr><td class="label-col">전용양념장</td><td class="val-col">${data.sauce}</td></tr>
+                <tr><td class="label-col">고기고명</td><td class="val-col">${data.meat}</td></tr>
+                <tr class="bg-orange-highlight"><td class="label-col">무김치</td><td class="val-col">${data.rad_kimchi}</td></tr>
+                <tr><td class="label-col">오이</td><td class="val-col">${data.cucumber}</td></tr>
+                <tr><td class="label-col">적채</td><td class="val-col">${data.red_cabbage}</td></tr>
+                <tr class="bg-orange-highlight"><td class="label-col">청양고추</td><td class="val-col">${data.pepper}</td></tr>
+                <tr><td class="label-col">계란</td><td class="val-col">${data.egg}</td></tr>
+                <tr><td class="label-col">참깨</td><td class="val-col">${data.sesame}</td></tr>
+                <tr><td class="label-col">식초/겨자</td><td class="val-col">${data.vinegar}</td></tr>
+            </table>
+        `;
+    }
+
+    function showKanjangRecipe(size) {
+        openRecipe();
+        const recipeScreen = document.getElementById('recipe-screen');
+
+        let data = {};
+        if (size === '1인분') {
+            data = { title: '간장찜닭 1인분', time: '8분', meat: '200', tteok: '4', sujabi: '25', potato: '50', onion: '50', scallion: '20', sauce: '120', garlic: '1스푼', noodle: '80', water: '600ml', starch: '15' };
+        } else if (size === '소') {
+            data = { title: '간장찜닭 소', time: '12분', meat: '500', tteok: '8', sujabi: '50', potato: '100', onion: '100', scallion: '40', sauce: '240', garlic: '2스푼', noodle: '160', water: '900ml', starch: '30' };
+        }
+
+        recipeScreen.innerHTML = `
+            <table class="single-card-table jjim-table">
+                <tr><th colspan="2">${data.title}</th></tr>
+                <tr><td class="label-col">시간</td><td class="val-col">${data.time}</td></tr>
+                <tr><td class="label-col">순살닭고기</td><td class="val-col">${data.meat}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">구멍떡</td><td class="val-col">${data.tteok}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">수제비</td><td class="val-col">${data.sujabi}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">감자</td><td class="val-col">${data.potato}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">양파</td><td class="val-col">${data.onion}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">대파</td><td class="val-col">${data.scallion}</td></tr>
+                <tr><td class="label-col">소스</td><td class="val-col">${data.sauce}</td></tr>
+                <tr><td class="label-col">다진마늘</td><td class="val-col">${data.garlic}</td></tr>
+                <tr><td class="label-col">납작당면</td><td class="val-col">${data.noodle}</td></tr>
+                <tr><td class="label-col">물</td><td class="val-col">${data.water}</td></tr>
+                <tr class="bg-darkred-footer"><td class="label-col">감자전분</td><td class="val-col">${data.starch}</td></tr>
+            </table>
+        `;
+    }
+
+    function showTruffleRecipe(size) {
+        openRecipe();
+        const recipeScreen = document.getElementById('recipe-screen');
+
+        let data = {};
+        if (size === '1인분') {
+            data = { title: '트러플찜닭 1인분', time: '8분', meat: '200', sujabi: '25', onion: '50', scallion: '20', sauce: '120', garlic: '1스푼', noodle: '80', water: '600ml', starch: '15', cream: '60', truffle: '15' };
+        } else if (size === '소') {
+            data = { title: '트러플찜닭 소', time: '12분', meat: '500', sujabi: '50', onion: '100', scallion: '40', sauce: '240', garlic: '2스푼', noodle: '160', water: '900ml', starch: '30', cream: '120', truffle: '30' };
+        }
+
+        recipeScreen.innerHTML = `
+            <table class="single-card-table jjim-table">
+                <tr><th colspan="2">${data.title}</th></tr>
+                <tr><td class="label-col">시간</td><td class="val-col">${data.time}</td></tr>
+                <tr><td class="label-col">순살닭고기</td><td class="val-col">${data.meat}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">수제비</td><td class="val-col">${data.sujabi}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">양파</td><td class="val-col">${data.onion}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">대파</td><td class="val-col">${data.scallion}</td></tr>
+                <tr><td class="label-col">소스</td><td class="val-col">${data.sauce}</td></tr>
+                <tr><td class="label-col">다진마늘</td><td class="val-col">${data.garlic}</td></tr>
+                <tr><td class="label-col">납작당면</td><td class="val-col">${data.noodle}</td></tr>
+                <tr><td class="label-col">물</td><td class="val-col">${data.water}</td></tr>
+                <tr class="bg-darkred-footer"><td class="label-col">감자전분</td><td class="val-col">${data.starch}</td></tr>
+                <tr class="bg-darkred-footer"><td class="label-col">쿠킹크림</td><td class="val-col">${data.cream}</td></tr>
+                <tr class="bg-darkred-footer"><td class="label-col">트러플 소스</td><td class="val-col">${data.truffle}</td></tr>
+            </table>
+        `;
+    }
+
+    function showJeyukRecipe(size) {
+        openRecipe();
+        const recipeScreen = document.getElementById('recipe-screen');
+
+        let data = {};
+        if (size === '1인분') {
+            data = { title: '제육볶음 1인분', gubun: '1인분', time: '2분', pack: '1팩', onion: '50', scallion: '50', oil: '5', margarine: '1스푼', pepper: '3개' };
+        } else if (size === '2인분') {
+            data = { title: '제육볶음 2인분', gubun: '2인분', time: '2분', pack: '2팩', onion: '50', scallion: '50', oil: '10', margarine: '2스푼', pepper: '3개' };
+        } else if (size === '3인분') {
+            data = { title: '제육볶음 3인분', gubun: '3인분', time: '3분', pack: '3팩', onion: '100', scallion: '100', oil: '15', margarine: '3스푼', pepper: '4개' };
+        } else if (size === '4인분') {
+            data = { title: '제육볶음 4인분', gubun: '4인분', time: '3분', pack: '4팩', onion: '100', scallion: '100', oil: '20', margarine: '4스푼', pepper: '5개' };
+        }
+
+        recipeScreen.innerHTML = `
+            <table class="single-card-table jeyuk-table">
+                <tr><th colspan="2">${data.title}</th></tr>
+                <tr class="bg-gray-head"><td class="label-col">구분</td><td class="val-col">${data.gubun}</td></tr>
+                <tr><td class="label-col">시간</td><td class="val-col">${data.time}</td></tr>
+                <tr><td class="label-col">삼겹살팩</td><td class="val-col">${data.pack}</td></tr>
+                <tr><td class="label-col">양파</td><td class="val-col">${data.onion}</td></tr>
+                <tr><td class="label-col">대파</td><td class="val-col">${data.scallion}</td></tr>
+                <tr><td class="label-col">고추기름</td><td class="val-col">${data.oil}</td></tr>
+                <tr><td class="label-col">마가린</td><td class="val-col">${data.margarine}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">매운고추</td><td class="val-col">${data.pepper}</td></tr>
+            </table>
+        `;
+    }
+
+    function showDakRecipe(size) {
+        openRecipe();
+        const recipeScreen = document.getElementById('recipe-screen');
+
+        let data = {};
+        if (size === '1인분') {
+            data = { title: '닭도리탕 1인분', time: '7분', meat: '200g', tteok: '4개', sujabi: '25g', potato: '50g', onion: '50g', scallion: '20g', sauce: '1국자', garlic: '1스푼', chiliPowder: '1스푼', water: '400ml', spicy: ['-', '1', '2', '3'] };
+        } else if (size === '소') {
+            data = { title: '닭도리탕 소', time: '9분', meat: '600g', tteok: '8개', sujabi: '50g', potato: '100g', onion: '100g', scallion: '40g', sauce: '2국자', garlic: '2스푼', chiliPowder: '2스푼', water: '600ml', spicy: ['-', '2', '4', '6'] };
+        } else if (size === '중') {
+            data = { title: '닭도리탕 중', time: '14분', meat: '900g', tteok: '8개', sujabi: '50g', potato: '100g', onion: '100g', scallion: '40g', sauce: '2국자', garlic: '2스푼', chiliPowder: '2스푼', water: '800ml', spicy: ['-', '3', '6', '9'] };
+        } else if (size === '대') {
+            data = { title: '닭도리탕 대', time: '9분/9분', meat: '600/600', tteok: '8개/8개', sujabi: '50g/50g', potato: '100g/100g', onion: '100g/100g', scallion: '40g/40g', sauce: '2국자/2국자', garlic: '2스푼/2스푼', chiliPowder: '2스푼/2스푼', water: '600ml/600ml', spicy: ['-', '2/2', '4/4', '6/6'] };
+        }
+
+        recipeScreen.innerHTML = `
+            <table class="single-card-table dak-table">
+                <tr><th colspan="2">${data.title}</th></tr>
+                <tr><td class="label-col">시간</td><td class="val-col">${data.time}</td></tr>
+                <tr><td class="label-col">닭고기</td><td class="val-col">${data.meat}</td></tr>
+                <tr class="bg-highlight"><td class="label-col">구멍떡</td><td class="val-col">${data.tteok}</td></tr>
+                <tr class="bg-highlight"><td class="label-col">수제비</td><td class="val-col">${data.sujabi}</td></tr>
+                <tr class="bg-highlight"><td class="label-col">감자</td><td class="val-col">${data.potato}</td></tr>
+                <tr class="bg-highlight"><td class="label-col">양파</td><td class="val-col">${data.onion}</td></tr>
+                <tr class="bg-highlight"><td class="label-col">대파</td><td class="val-col">${data.scallion}</td></tr>
+                <tr><td class="label-col">소스</td><td class="val-col">${data.sauce}</td></tr>
+                <tr><td class="label-col">다진마늘</td><td class="val-col">${data.garlic}</td></tr>
+                <tr><td class="label-col">고춧가루</td><td class="val-col">${data.chiliPowder}</td></tr>
+                <tr><td class="label-col">물</td><td class="val-col">${data.water}</td></tr>
+                <tr class="bg-red-head"><td class="label-col">매운맛단계 (0/1/2/3)</td><td class="val-col">${data.spicy.join(' / ')}</td></tr>
+            </table>
+        `;
+    }
+</script>
+</body>
+</html>
