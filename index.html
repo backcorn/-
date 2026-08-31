@@ -626,9 +626,9 @@
 
         let data = {};
         if (size === '1인분') {
-            data = { title: '트러플찜닭 1인분', time: '8분', meat: '200', sujabi: '25', onion: '50', scallion: '20', sauce: '120', garlic: '1스푼', noodle: '80', water: '600ml', starch: '15', cream: '60', truffle: '15' };
+            data = { title: '트러플찜닭 1인분', time: '8분', meat: '200', sujabi: '25', onion: '50', scallion: '20', gnocchi: '6개', pasta: '6개(1분40초 끓이기)', sauce: '120', garlic: '1스푼', noodle: '80', water: '600ml', starch: '15', cream: '60', truffle: '15' };
         } else if (size === '소') {
-            data = { title: '트러플찜닭 소', time: '12분', meat: '500', sujabi: '50', onion: '100', scallion: '40', sauce: '240', garlic: '2스푼', noodle: '160', water: '900ml', starch: '30', cream: '120', truffle: '30' };
+            data = { title: '트러플찜닭 소', time: '12분', meat: '500', sujabi: '50', onion: '100', scallion: '40', gnocchi: '12개', pasta: '12개(1분40초 끓이기)', sauce: '240', garlic: '2스푼', noodle: '160', water: '900ml', starch: '30', cream: '120', truffle: '30' };
         }
 
         recipeScreen.innerHTML = `
@@ -639,6 +639,8 @@
                 <tr class="bg-yellow-highlight"><td class="label-col">수제비</td><td class="val-col">${data.sujabi}</td></tr>
                 <tr class="bg-yellow-highlight"><td class="label-col">양파</td><td class="val-col">${data.onion}</td></tr>
                 <tr class="bg-yellow-highlight"><td class="label-col">대파</td><td class="val-col">${data.scallion}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">뇨끼</td><td class="val-col">${data.gnocchi}</td></tr>
+                <tr class="bg-yellow-highlight"><td class="label-col">숏파스타</td><td class="val-col">${data.pasta}</td></tr>
                 <tr><td class="label-col">소스</td><td class="val-col">${data.sauce}</td></tr>
                 <tr><td class="label-col">다진마늘</td><td class="val-col">${data.garlic}</td></tr>
                 <tr><td class="label-col">납작당면</td><td class="val-col">${data.noodle}</td></tr>
